@@ -1,11 +1,13 @@
-import Image from "next/image";
+import Features from "@/components/features-1";
+import FooterSection from "@/components/Footer";
+import HeroSection from "@/components/hero-section";
 
 export default function Home() {
   return (
-    <div className="min-h-screen w-full flex justify-center items-center">
-      <h1 className="text-4xl font-semibold">
-        Second Brain App
-      </h1>
-    </div>
+    <>
+      <HeroSection />
+      <Features />
+      <FooterSection />
+    </>
   );
 }

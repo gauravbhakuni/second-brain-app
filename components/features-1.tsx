@@ -1,0 +1,85 @@
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Settings2, Sparkles, Zap } from 'lucide-react'
+import { ReactNode } from 'react'
+
+export default function Features() {
+    return (
+        <section id='features' className="bg-transparent py-16 md:py-32">
+            <div className="@container mx-auto max-w-5xl px-6">
+                <div className="text-center">
+                    <h2 className="text-balance text-4xl font-semibold lg:text-5xl">
+                        Built to organize your knowledge
+                    </h2>
+                    <p className="mt-4">
+                        Capture notes, links, files, and ideas in one seamless space — structured for clarity and easy retrieval whenever you need them.
+                    </p>
+                </div>
+                <div className="@min-4xl:max-w-full @min-4xl:grid-cols-3 mx-auto mt-8 grid max-w-sm gap-6 *:text-center md:mt-16">
+                    <Card className="group shadow-zinc-950/5">
+                        <CardHeader className="pb-3">
+                            <CardDecorator>
+                                <Zap className="size-6" aria-hidden />
+                            </CardDecorator>
+
+                            <h3 className="mt-6 font-medium">Customizable</h3>
+                        </CardHeader>
+
+                        <CardContent>
+                            <p className="text-sm">
+                                Adapt Second Brain to fit the way you think. Flexible organization options let you tag, connect, and structure information exactly how you want.
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="group shadow-zinc-950/5">
+                        <CardHeader className="pb-3">
+                            <CardDecorator>
+                                <Settings2 className="size-6" aria-hidden />
+                            </CardDecorator>
+
+                            <h3 className="mt-6 font-medium">You have full control</h3>
+                        </CardHeader>
+
+                        <CardContent>
+                            <p className="mt-3 text-sm">
+                                From simple note-taking to advanced knowledge maps, you decide how your Second Brain works for you. Stay productive with a system that grows alongside you.
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="group shadow-zinc-950/5">
+                        <CardHeader className="pb-3">
+                            <CardDecorator>
+                                <Sparkles className="size-6" aria-hidden />
+                            </CardDecorator>
+
+                            <h3 className="mt-6 font-medium">Powered By AI</h3>
+                        </CardHeader>
+
+                        <CardContent>
+                            <p className="mt-3 text-sm">
+                                Let AI surface insights, summarize information, and connect ideas — turning scattered knowledge into actionable intelligence.
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </section>
+    )
+}
+
+const CardDecorator = ({ children }: { children: ReactNode }) => (
+    <div className="relative mx-auto size-36 duration-200 [--color-border:color-mix(in_oklab,var(--color-white)15%,transparent)] group-hover:bg-white/5 group-hover:[--color-border:color-mix(in_oklab,var(--color-white)20%,transparent)]">
+        <div
+            aria-hidden
+            className="absolute inset-0 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-[size:24px_24px]"
+        />
+        <div
+            aria-hidden
+            className="bg-radial to-background absolute inset-0 from-transparent to-75%"
+        />
+        <div className="bg-background absolute inset-0 m-auto flex size-12 items-center justify-center border-l border-t">
+            {children}
+        </div>
+    </div>
+)
