@@ -52,7 +52,7 @@ export const HeroHeader = () => {
                                     <li key={index}>
                                         <a
                                             href={item.href}
-                                            className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                                            className="text-muted-foreground hover:text-accent block duration-150"
                                             onClick={e => {
                                                 e.preventDefault();
                                                 if (item.name.toLowerCase() === 'home') {
