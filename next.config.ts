@@ -5,9 +5,17 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        hostname: "ik.imagekit.io",
         protocol: "https",
-      }
+        hostname: "ik.imagekit.io",
+      },
+      {
+        protocol: "https",
+        hostname: "www.gravatar.com",
+      },
+      {
+        protocol: "https",
+        hostname: "gravatar.com",
+      },
     ]
   }
 };

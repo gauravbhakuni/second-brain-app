@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Sidebar from "@/components/sidebar";
 import Navbar from "@/components/navbar";
+import Settings from "@/components/settings";
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -38,13 +39,15 @@ export default function Dashboard() {
         return <h1 className="text-2xl font-bold">Links Section</h1>;
       case "Tags":
         return <h1 className="text-2xl font-bold">Tags Section</h1>;
+      case "Settings":
+        return <><Settings /></>;
       default:
         return <h1 className="text-2xl font-bold">Welcome</h1>;
     }
   };
 
   return (
-    <div className="flex h-screen bg-background text-foreground">
+    <div className="dashboard-layout flex h-screen bg-background text-foreground">
       {/* Sidebar */}
       <Sidebar
         isOpen={isSidebarOpen}
