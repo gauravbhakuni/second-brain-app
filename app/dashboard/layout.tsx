@@ -1,5 +1,6 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import "./dashboard.css";
+import Providers from "@/components/ProgressBarProvider";
 
 export default function DashboardLayout({
   children,
@@ -14,7 +15,7 @@ export default function DashboardLayout({
         enableSystem
         disableTransitionOnChange
       >
-        {children}
+        <Providers>{children}</Providers>
       </ThemeProvider>
     </div>
   );

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Sidebar from "@/components/sidebar";
 import Navbar from "@/components/navbar";
 import Settings from "@/components/settings";
+import AllNotes from "@/components/AllNotes";
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -15,18 +16,7 @@ export default function Dashboard() {
       case "All Notes":
         return (
           <>
-            <h1 className="text-2xl font-bold mb-6">All Notes</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="p-6 bg-card text-card-foreground rounded-xl shadow border border-border">
-                Note 1
-              </div>
-              <div className="p-6 bg-card text-card-foreground rounded-xl shadow border border-border">
-                Note 2
-              </div>
-              <div className="p-6 bg-card text-card-foreground rounded-xl shadow border border-border">
-                Note 3
-              </div>
-            </div>
+            <AllNotes />
           </>
         );
       case "Tweets":

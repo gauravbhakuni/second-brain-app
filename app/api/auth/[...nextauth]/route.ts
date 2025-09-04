@@ -63,27 +63,37 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
   async jwt({ token, user }) {
-    // Always fetch the latest emailVerified from the DB if user is present or on session refresh
     if (user && user.email) {
       // On login
-      const dbUser = await prisma.user.findUnique({ where: { email: user.email }, select: { emailVerified: true, avatarUrl: true } });
+      const dbUser = await prisma.user.findUnique({
+        where: { email: user.email },
+        select: { emailVerified: true, avatarUrl: true, name: true },
+      });
       token.emailVerified = dbUser?.emailVerified ?? null;
       token.image = dbUser?.avatarUrl || null;
+      token.name = dbUser?.name || user.name || null; // <-- add this
     } else if (token.email) {
       // On session refresh
-      const dbUser = await prisma.user.findUnique({ where: { email: token.email }, select: { emailVerified: true, avatarUrl: true } });
+      const dbUser = await prisma.user.findUnique({
+        where: { email: token.email },
+        select: { emailVerified: true, avatarUrl: true, name: true },
+      });
       token.emailVerified = dbUser?.emailVerified ?? null;
       token.image = dbUser?.avatarUrl || null;
+      token.name = dbUser?.name || token.name || null; // <-- add this
     }
     return token;
   },
+
   async session({ session, token }) {
     if (session.user) {
-      session.user.id = typeof token.sub === 'string' ? token.sub : "";
-      session.user.emailVerified = (typeof token.emailVerified === 'string' || token.emailVerified instanceof Date)
-        ? token.emailVerified as Date | null
-        : null;
-      session.user.image = typeof token.image === 'string' ? token.image : undefined;
+      session.user.id = typeof token.sub === "string" ? token.sub : "";
+      session.user.emailVerified =
+        typeof token.emailVerified === "string" || token.emailVerified instanceof Date
+          ? (token.emailVerified as Date | null)
+          : null;
+      session.user.image = typeof token.image === "string" ? token.image : undefined;
+      session.user.name = typeof token.name === "string" ? token.name : session.user.name; // <-- add this
     }
     return session;
   },

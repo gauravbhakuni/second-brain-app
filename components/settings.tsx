@@ -1,54 +1,151 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
+import { Button } from "./ui/button";
+import { useSession } from "next-auth/react";
 
 export default function Settings() {
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [message, setMessage] = useState("");
+  const { data: session, update } = useSession();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const predefinedAvatars = [
+    "https://api.dicebear.com/9.x/adventurer/svg?seed=Jade",
+    "https://api.dicebear.com/9.x/adventurer/svg?seed=Destiny",
+    "https://api.dicebear.com/9.x/adventurer/svg?seed=Ryan",
+    "https://api.dicebear.com/9.x/adventurer/svg?seed=George",
+    "https://api.dicebear.com/9.x/adventurer/svg?seed=Leah",
+    "https://api.dicebear.com/9.x/adventurer/svg?seed=Easton",
+    "https://api.dicebear.com/9.x/adventurer/svg?seed=Riley",
+    "https://api.dicebear.com/9.x/adventurer/svg?seed=Jameson",
+  ];
 
+  const [avatarUrl, setAvatarUrl] = useState<string>(
+    session?.user?.image || ""
+  );
+  const [name, setName] = useState<string>(session?.user?.name || "");
+  const [message, setMessage] = useState<string>("");
+
+  const [editingAvatar, setEditingAvatar] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+
+  async function updateUser(data: Record<string, string>) {
     try {
-      // Replace this with your API endpoint to update avatarUrl in DB
-      const res = await fetch("/api/auth/settings", {
-        method: "POST",
+      const res = await fetch("/api/user/me", {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avatarUrl }),
+        body: JSON.stringify(data),
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        setMessage(`Error: ${data.message || "Failed to update avatar"}`);
+        const json = await res.json();
+        setMessage(`❌ ${json.error || "Failed to update user"}`);
         return;
       }
 
-      setMessage("Avatar updated successfully!");
+      const updated = await res.json();
+      setMessage("✅ Updated successfully!");
+
+      // update local state
+      if (updated.image) setAvatarUrl(updated.image);
+      if (updated.name) setName(updated.name);
+
+      // also update session (next-auth)
+      await update({
+        ...session,
+        user: {
+          ...session?.user,
+          image: updated.image || session?.user?.image,
+          name: updated.name || session?.user?.name,
+        },
+      });
+
+      setEditingAvatar(false);
+      setEditingName(false);
     } catch {
-      setMessage("Server error");
+      setMessage("❌ Server error");
     }
-  };
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Settings</h1>
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
-        <label htmlFor="avatarUrl" className="block font-medium">
-          Avatar URL
-        </label>
-        <input
-          id="avatarUrl"
-          type="text"
-          value={avatarUrl}
-          onChange={(e) => setAvatarUrl(e.target.value)}
-          placeholder="Enter new avatar URL"
-          className="w-full border border-gray-300 rounded px-3 py-2"
+    <div className="flex flex-col items-center">
+      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+      {/* Current Avatar & Name */}
+      <div className="flex flex-col items-center mb-6">
+        <Image
+          src={avatarUrl || "/default-avatar.png"}
+          alt="Current Avatar"
+          width={100}
+          height={100}
+          className="rounded-full border shadow"
+          unoptimized
         />
-        <button type="submit" className="btn-primary">
-          Update Avatar
-        </button>
-      </form>
-      {message && <p className="mt-4">{message}</p>}
+        <p className="mt-3 text-lg font-semibold">{name || "Your Name"}</p>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-4 justify-center mb-6">
+        <Button onClick={() => setEditingAvatar(!editingAvatar)}>
+          {editingAvatar ? "Cancel" : "Change Avatar"}
+        </Button>
+        <Button onClick={() => setEditingName(!editingName)}>
+          {editingName ? "Cancel" : "Change Name"}
+        </Button>
+      </div>
+
+      {/* Avatar Editor */}
+      {editingAvatar && (
+        <div>
+          <p className="mb-2 font-medium">Select a new Avatar:</p>
+          <div className="grid grid-cols-4 gap-4">
+            {predefinedAvatars.map((url) => (
+              <Image
+                key={url}
+                src={url}
+                alt="avatar option"
+                className={`cursor-pointer rounded-full border-4 transition ${
+                  avatarUrl === url
+                    ? "border-blue-500 scale-105"
+                    : "border-transparent"
+                }`}
+                width={80}
+                height={80}
+                onClick={() => setAvatarUrl(url)}
+                unoptimized
+              />
+            ))}
+          </div>
+          <Button
+            className="mt-4"
+            disabled={!avatarUrl}
+            onClick={() => updateUser({ image: avatarUrl })}
+          >
+            Save Avatar
+          </Button>
+        </div>
+      )}
+
+      {/* Name Editor */}
+      {editingName && (
+        <div className="mt-4">
+          <label className="block font-medium mb-2">Enter a new Name:</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full border rounded p-2"
+            placeholder="Your new name"
+          />
+          <Button
+            className="mt-4"
+            disabled={!name.trim()}
+            onClick={() => updateUser({ name })}
+          >
+            Save Name
+          </Button>
+        </div>
+      )}
+
+      {message && <p className="mt-4 text-center">{message}</p>}
     </div>
   );
 }

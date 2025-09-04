@@ -86,6 +86,7 @@ export default function Sidebar({
               src={avatarUrl}
               alt="User Avatar"
               className="w-16 h-16 rounded-full mt-6 border border-gray-300 object-cover"
+              unoptimized
             />
           )}
           {name && (
