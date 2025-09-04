@@ -9,7 +9,6 @@ import {
   IoLinkSharp,
   IoSettingsSharp,
 } from "react-icons/io5";
-import { FiHash } from "react-icons/fi";
 import { BiSolidDashboard } from "react-icons/bi";
 import { Logo } from "./logo";
 import { useSession, signOut } from "next-auth/react";
@@ -36,7 +35,6 @@ export default function Sidebar({
     { label: "Videos", icon: <BsYoutube size={18} /> },
     { label: "Documents", icon: <IoDocumentTextSharp size={18} /> },
     { label: "Links", icon: <IoLinkSharp size={18} /> },
-    { label: "Tags", icon: <FiHash size={18} /> },
     { label: "Settings", icon: <IoSettingsSharp size={18} /> },
   ];
 

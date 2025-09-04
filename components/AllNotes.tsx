@@ -7,7 +7,6 @@ import {
   Trash2,
   FileText,
   Link as LinkIcon,
-  Image as ImageIcon,
 } from "lucide-react";
 import Image from "next/image";
 

@@ -1,40 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Sidebar from "@/components/sidebar";
 import Navbar from "@/components/navbar";
 import Settings from "@/components/settings";
 import AllNotes from "@/components/AllNotes";
+import ContentList from "@/components/ContentList";
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activePage, setActivePage] = useState("All Notes");
 
-  // Simple mock content for each menu option
-  const renderContent = () => {
+  // Memoize content so components don’t get remounted unnecessarily
+  const renderedContent = useMemo(() => {
     switch (activePage) {
       case "All Notes":
-        return (
-          <>
-            <AllNotes />
-          </>
-        );
+        return <AllNotes key="notes" />;
       case "Tweets":
-        return <h1 className="text-2xl font-bold">Tweets Section</h1>;
+        return <ContentList key="tweets" type="TWEET" title="Tweets" />;
       case "Videos":
-        return <h1 className="text-2xl font-bold">Videos Section</h1>;
+        return <ContentList key="videos" type="VIDEO" title="Videos" />;
       case "Documents":
-        return <h1 className="text-2xl font-bold">Documents Section</h1>;
+        return <ContentList key="docs" type="DOCUMENT" title="Documents" />;
       case "Links":
-        return <h1 className="text-2xl font-bold">Links Section</h1>;
-      case "Tags":
-        return <h1 className="text-2xl font-bold">Tags Section</h1>;
+        return <ContentList key="links" type="LINK" title="Links" />;
       case "Settings":
-        return <><Settings /></>;
+        return <Settings key="settings" />;
       default:
         return <h1 className="text-2xl font-bold">Welcome</h1>;
     }
-  };
+  }, [activePage]);
 
   return (
     <div className="dashboard-layout flex h-screen bg-background text-foreground">
@@ -55,7 +50,7 @@ export default function Dashboard() {
             isSidebarOpen ? "blur-sm" : ""
           }`}
         >
-          {renderContent()}
+          {renderedContent}
         </main>
       </div>
     </div>
