@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { BsYoutube } from "react-icons/bs";
-import { FaTwitter } from "react-icons/fa";
+import { FaBrain, FaTwitter } from "react-icons/fa";
 import {
   IoCloseSharp,
   IoDocumentTextSharp,
@@ -35,6 +35,7 @@ export default function Sidebar({
     { label: "Videos", icon: <BsYoutube size={18} /> },
     { label: "Documents", icon: <IoDocumentTextSharp size={18} /> },
     { label: "Links", icon: <IoLinkSharp size={18} /> },
+    { label: "Ai Agent", icon: <FaBrain size={18} /> },
     { label: "Settings", icon: <IoSettingsSharp size={18} /> },
   ];
 
