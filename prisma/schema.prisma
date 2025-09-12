@@ -75,6 +75,8 @@ model User {
   avatarUrl     String?
   passwordHash  String? // if supporting email/password auth
   role          Role      @default(USER)
+  apiKeyOpenAI  String?
+  apiKeyGemini  String?
 
   // Relations
   memberships        Membership[]
