@@ -6,6 +6,9 @@ import Navbar from "@/components/navbar";
 import Settings from "@/components/settings";
 import AllNotes from "@/components/AllNotes";
 import ContentList from "@/components/ContentList";
+import ChatAgent from "@/components/ChatAgent";
+import GeminiImage from "@/components/GeminiImage";
+import CreateNotes from "@/components/CreateNotes";
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -24,6 +27,8 @@ export default function Dashboard() {
         return <ContentList key="docs" type="DOCUMENT" title="Documents" />;
       case "Links":
         return <ContentList key="links" type="LINK" title="Links" />;
+      case "Ai Agent":
+        return <CreateNotes />;
       case "Settings":
         return <Settings key="settings" />;
       default:
