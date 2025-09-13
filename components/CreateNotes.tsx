@@ -5,19 +5,27 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
-import { FiPlus, FiTrash2, FiSearch, FiEdit2, FiDownload, FiChevronLeft } from "react-icons/fi";
+import {
+  FiPlus,
+  FiTrash2,
+  FiSearch,
+  FiEdit2,
+} from "react-icons/fi";
+import type { Pluggable } from "unified";
 
-// shadcn/ui components (adjust import paths for your project if necessary)
+// shadcn/ui components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import DownloadOptions from "./DownloadOptions";
 
 type NoteMeta = {
   id: string;
   title: string;
   tags: string[];
+  createdAt: number;
   updatedAt: number;
 };
 
@@ -40,8 +48,14 @@ function extractTitle(md: string) {
 export default function CreateNotes(): React.ReactElement {
   const [notes, setNotes] = useState<NoteMeta[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [markdown, setMarkdown] = useState<string>("# Welcome\n\nStart writing markdown...");
-  const [view, setView] = useState<"both" | "editor" | "preview">("both");
+  const [markdown, setMarkdown] = useState<string>(
+    "# Welcome\n\nStart writing markdown..."
+  );
+  const [view, setView] = useState<"both" | "editor" | "preview">(
+    typeof window !== "undefined" && window.innerWidth >= 768
+      ? "both"
+      : "editor"
+  );
   const [query, setQuery] = useState("");
   const [tagInput, setTagInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -56,8 +70,18 @@ export default function CreateNotes(): React.ReactElement {
       if (idx.length === 0) {
         const id = uid();
         const initialContent = "# Untitled\n\n";
-        const meta: NoteMeta = { id, title: extractTitle(initialContent), tags: [], updatedAt: Date.now() };
-        localStorage.setItem(NOTE_KEY(id), JSON.stringify({ content: initialContent }));
+        const meta: NoteMeta = {
+          id,
+          title: "Untitled",
+          tags: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        };
+
+        localStorage.setItem(
+          NOTE_KEY(id),
+          JSON.stringify({ content: initialContent })
+        );
         idx = [meta];
         localStorage.setItem(INDEX_KEY, JSON.stringify(idx));
       }
@@ -72,15 +96,30 @@ export default function CreateNotes(): React.ReactElement {
         setTagInput((first.tags || []).join(", "));
       }
     } catch {
-      // fallback: create a single note in memory
       const id = uid();
       const initialContent = "# Untitled\n\n";
-      const meta: NoteMeta = { id, title: extractTitle(initialContent), tags: [], updatedAt: Date.now() };
+      const meta: NoteMeta = {
+        id,
+        title: extractTitle(initialContent),
+        tags: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
       setNotes([meta]);
       setActiveId(id);
       setMarkdown(initialContent);
     }
   }, []);
+
+  // handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) setView("both");
+      else if (view === "both") setView("editor"); // keep small screen default editor
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [view]);
 
   // persist index
   function persistIndex(next: NoteMeta[]) {
@@ -92,29 +131,45 @@ export default function CreateNotes(): React.ReactElement {
     }
   }
 
-  // auto-save current note (debounced)
+  // auto-save current note
   useEffect(() => {
     const timer = window.setTimeout(() => {
       if (!activeId) return;
-      try {
-        localStorage.setItem(NOTE_KEY(activeId), JSON.stringify({ content: markdown }));
-        const next = notes.map((n) => (n.id === activeId ? { ...n, title: extractTitle(markdown), updatedAt: Date.now() } : n));
-        persistIndex(next);
-      } catch (e) {
-        console.error("Auto-save failed", e);
-      }
+
+      // Save markdown content
+      localStorage.setItem(
+        NOTE_KEY(activeId),
+        JSON.stringify({ content: markdown })
+      );
+
+      // Update only the active note
+      setNotes((prev) =>
+        prev.map((n) =>
+          n.id === activeId
+            ? { ...n, title: extractTitle(markdown), updatedAt: Date.now() }
+            : n
+        )
+      );
     }, 600);
 
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [markdown, activeId]);
+  }, [markdown, activeId]); // ✅ removed `notes`
 
   function createNote() {
     const id = uid();
     const initialContent = "# Untitled\n\n";
-    const meta: NoteMeta = { id, title: "Untitled", tags: [], updatedAt: Date.now() };
+    const meta: NoteMeta = {
+      id,
+      title: "Untitled",
+      tags: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
     try {
-      localStorage.setItem(NOTE_KEY(id), JSON.stringify({ content: initialContent }));
+      localStorage.setItem(
+        NOTE_KEY(id),
+        JSON.stringify({ content: initialContent })
+      );
     } catch (e) {
       console.error(e);
     }
@@ -141,7 +196,9 @@ export default function CreateNotes(): React.ReactElement {
         const s = localStorage.getItem(NOTE_KEY(next[0].id));
         if (s) setMarkdown(JSON.parse(s).content || "");
       } else {
-        createNote();
+        // No notes left
+        setActiveId(null);
+        setMarkdown("");
       }
     }
   }
@@ -153,7 +210,7 @@ export default function CreateNotes(): React.ReactElement {
       setMarkdown(JSON.parse(s).content || "");
       const meta = notes.find((n) => n.id === id);
       setTagInput(meta ? meta.tags.join(", ") : "");
-      setView("both");
+      setView("editor");
     }
   }
 
@@ -168,33 +225,33 @@ export default function CreateNotes(): React.ReactElement {
     setTagInput(tags.join(", "));
   }
 
-  function downloadMarkdownFile() {
-    const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    const title = notes.find((n) => n.id === activeId)?.title || "note";
-    a.download = `${title.replace(/[^a-z0-9-_ ]/gi, "_")}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
   // sync line numbers scrolling
   useEffect(() => {
     const ta = textareaRef.current;
     const ln = lineNumberRef.current;
     if (!ta || !ln) return;
-    function onScroll() {
-      ln!.scrollTop = ta!.scrollTop;
-    }
-    ta.addEventListener("scroll", onScroll);
-    return () => ta.removeEventListener("scroll", onScroll);
+
+    const handleScroll = () => {
+      if (ln && ta) {
+        ln.scrollTop = ta.scrollTop;
+      }
+    };
+
+    ta.addEventListener("scroll", handleScroll);
+
+    return () => {
+      ta.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const filtered = notes.filter((n) => {
     const q = query.toLowerCase();
     const content = (localStorage.getItem(NOTE_KEY(n.id)) || "").toLowerCase();
-    return n.title.toLowerCase().includes(q) || n.tags.join(" ").toLowerCase().includes(q) || content.includes(q);
+    return (
+      n.title.toLowerCase().includes(q) ||
+      n.tags.join(" ").toLowerCase().includes(q) ||
+      content.includes(q)
+    );
   });
 
   return (
@@ -228,12 +285,19 @@ export default function CreateNotes(): React.ReactElement {
               {filtered.map((n) => (
                 <div
                   key={n.id}
-                  className={`p-3 cursor-pointer hover:bg-muted flex items-start justify-between ${n.id === activeId ? "bg-accent" : ""}`}
+                  className={`p-3 cursor-pointer hover:bg-muted flex items-start justify-between ${
+                    n.id === activeId ? "bg-accent" : ""
+                  }`}
                   onClick={() => openNote(n.id)}
                 >
                   <div>
                     <div className="font-medium">{n.title}</div>
-                    <div className="text-xs text-muted-foreground">{new Date(n.updatedAt).toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Created: {new Date(n.createdAt).toLocaleString()}
+                      <br />
+                      Updated: {new Date(n.updatedAt).toLocaleString()}
+                    </div>
+
                     <div className="mt-2 flex gap-1">
                       {n.tags.slice(0, 3).map((t) => (
                         <Badge key={t}>{t}</Badge>
@@ -242,17 +306,37 @@ export default function CreateNotes(): React.ReactElement {
                   </div>
 
                   <div className="flex flex-col items-end gap-2">
-                    <Button variant="ghost" onClick={(e) => { e.stopPropagation(); setActiveId(n.id); const s = localStorage.getItem(NOTE_KEY(n.id)); if (s) setMarkdown(JSON.parse(s).content || ""); }} title="Edit">
+                    <Button
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveId(n.id);
+                        const s = localStorage.getItem(NOTE_KEY(n.id));
+                        if (s) setMarkdown(JSON.parse(s).content || "");
+                      }}
+                      title="Edit"
+                    >
                       <FiEdit2 />
                     </Button>
-                    <Button variant="destructive" onClick={(e) => { e.stopPropagation(); deleteNote(n.id); }} title="Delete">
+                    <Button
+                      variant="destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteNote(n.id);
+                      }}
+                      title="Delete"
+                    >
                       <FiTrash2 />
                     </Button>
                   </div>
                 </div>
               ))}
 
-              {filtered.length === 0 && <div className="p-4 text-sm text-muted-foreground">No notes found.</div>}
+              {filtered.length === 0 && (
+                <div className="p-4 text-sm text-muted-foreground">
+                  No notes found.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -264,7 +348,11 @@ export default function CreateNotes(): React.ReactElement {
           <CardContent>
             <Label className="text-sm">Comma separated</Label>
             <div className="mt-2 flex gap-2">
-              <Input value={tagInput} onChange={(e) => setTagInput(e.target.value)} placeholder="e.g. personal, work" />
+              <Input
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                placeholder="e.g. personal, work"
+              />
               <Button onClick={saveTagsForActive}>Save</Button>
             </div>
           </CardContent>
@@ -272,32 +360,74 @@ export default function CreateNotes(): React.ReactElement {
       </aside>
 
       <main className="order-1 md:order-2">
-        <div className="flex items-center justify-between mb-4 gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold">{notes.find((n) => n.id === activeId)?.title || "Untitled"}</h2>
-            <div className="hidden sm:flex items-center gap-2">
-              <Button onClick={() => setView("editor")}>Editor</Button>
-              <Button onClick={() => setView("preview")}>Preview</Button>
-              <Button onClick={() => setView("both")}>Both</Button>
+            <h2 className="text-lg font-semibold">
+              {notes.find((n) => n.id === activeId)?.title || "Untitled"}
+            </h2>
+
+            <div className="flex items-center gap-2">
+              {/* Editor button */}
+              <Button
+                variant={view === "editor" ? "default" : "outline"}
+                onClick={() => setView("editor")}
+              >
+                Editor
+              </Button>
+
+              {/* Preview button */}
+              <Button
+                variant={view === "preview" ? "default" : "outline"}
+                onClick={() => setView("preview")}
+              >
+                Preview
+              </Button>
+
+              {/* Both button: only visible on medium+ screens */}
+              <Button
+                variant={view === "both" ? "default" : "outline"}
+                className="hidden md:inline-flex"
+                onClick={() => setView("both")}
+              >
+                Both
+              </Button>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button onClick={downloadMarkdownFile}>
-              <FiDownload />
-            </Button>
-            <Button variant="secondary" onClick={() => { navigator.clipboard?.writeText(markdown); }}>
+            <DownloadOptions markdown={markdown} />
+
+            <Button
+              variant="secondary"
+              onClick={() => {
+                navigator.clipboard?.writeText(markdown);
+              }}
+            >
               Copy
             </Button>
           </div>
         </div>
 
-        <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
-          <div className="flex flex-col md:flex-row h-[68vh]">
-            <div className={`${view === "preview" ? "hidden" : "block"} md:block md:w-1/2 border-r relative bg-card`}>
-              <div className="absolute left-0 top-0 bottom-0 w-12 p-2 overflow-auto bg-muted text-right text-xs text-muted-foreground" ref={lineNumberRef} aria-hidden>
+        {/* editor / preview container */}
+        <div className="border rounded-lg overflow-hidden bg-card shadow-sm">
+          <div className={`flex flex-col md:flex-row h-[80vh]`}>
+            {/* Editor */}
+            <div
+              className={`${
+                view === "preview" ? "hidden" : "flex"
+              } flex-col w-full ${
+                view === "both" ? "md:w-1/2" : ""
+              } border-r relative bg-card h-full`}
+            >
+              <div
+                className="absolute left-0 top-0 bottom-0 w-12 p-2 overflow-auto bg-muted text-right text-xs text-muted-foreground"
+                ref={lineNumberRef}
+                aria-hidden
+              >
                 {markdown.split(/\r?\n/).map((_, i) => (
-                  <div key={i} className="leading-6 px-1">{i + 1}</div>
+                  <div key={i} className="leading-6 px-1">
+                    {i + 1}
+                  </div>
                 ))}
               </div>
 
@@ -310,24 +440,24 @@ export default function CreateNotes(): React.ReactElement {
               />
             </div>
 
-            <div className={`${view === "editor" ? "hidden" : "block"} md:block md:w-1/2 p-6 overflow-auto bg-muted`}>
+            {/* Preview */}
+            <div
+            id="preview-container"
+              className={`${
+                view === "editor" ? "hidden" : "flex"
+              } flex-col w-full ${
+                view === "both" ? "md:w-1/2" : ""
+              } p-6 overflow-auto bg-muted h-full`}
+            >
               <div className="prose prose-slate max-w-none" aria-live="polite">
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight as any]}>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeHighlight as Pluggable]}
+                >
                   {markdown}
                 </ReactMarkdown>
               </div>
             </div>
-          </div>
-        </div>
-
-        <div className="md:hidden mt-3 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Button onClick={() => setView(view === "editor" ? "both" : "editor")}>{view === "editor" ? <FiChevronLeft /> : <FiEdit2 />}{view === "editor" ? "Both" : "Editor"}</Button>
-            <Button onClick={() => setView(view === "preview" ? "both" : "preview")}>{view === "preview" ? <FiChevronLeft /> : <FiDownload />}{view === "preview" ? "Both" : "Preview"}</Button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button onClick={downloadMarkdownFile}>Download</Button>
           </div>
         </div>
       </main>
