@@ -166,10 +166,10 @@ export default function HeroSection() {
                   {/* Dark mode version */}
                   <div className="relative aspect-[15/8] w-full hidden dark:block">
                     <Image
-                      src="/assets/images/dashboard_preview.png"
+                      src="/assets/images/image.png"
                       alt="app screen"
                       fill
-                      className="rounded-2xl object-cover bg-background"
+                      className="rounded-2xl object-contain bg-background"
                       priority
                     />
                   </div>

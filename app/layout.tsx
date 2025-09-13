@@ -4,6 +4,8 @@ import "./globals.css";
 
 import ClientSessionProvider from "@/components/ClientSessionProvider";
 import Providers from "@/components/ProgressBarProvider";
+import { authOptions } from "./api/auth/[...nextauth]/route";
+import { getServerSession } from "next-auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,17 +22,20 @@ export const metadata: Metadata = {
   description: "",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en" className="dark" style={{ colorScheme: "dark" }}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ClientSessionProvider>
+        <ClientSessionProvider session={session}>
           <Providers>{children}</Providers>
         </ClientSessionProvider>
       </body>
