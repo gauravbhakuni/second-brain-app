@@ -5,9 +5,7 @@ import Sidebar from "@/components/sidebar";
 import Navbar from "@/components/navbar";
 import Settings from "@/components/settings";
 import AllNotes from "@/components/AllNotes";
-import ContentList from "@/components/ContentList";
 import ChatAgent from "@/components/ChatAgent";
-import GeminiImage from "@/components/GeminiImage";
 import CreateNotes from "@/components/CreateNotes";
 
 export default function Dashboard() {
@@ -19,16 +17,10 @@ export default function Dashboard() {
     switch (activePage) {
       case "All Notes":
         return <AllNotes key="notes" />;
-      case "Tweets":
-        return <ContentList key="tweets" type="TWEET" title="Tweets" />;
-      case "Videos":
-        return <ContentList key="videos" type="VIDEO" title="Videos" />;
-      case "Documents":
-        return <ContentList key="docs" type="DOCUMENT" title="Documents" />;
-      case "Links":
-        return <ContentList key="links" type="LINK" title="Links" />;
-      case "Ai Agent":
+      case "Create Notes":
         return <CreateNotes />;
+      case "Ai Agent":
+        return <ChatAgent />;
       case "Settings":
         return <Settings key="settings" />;
       default:

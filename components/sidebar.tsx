@@ -1,12 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BsYoutube } from "react-icons/bs";
-import { FaBrain, FaTwitter } from "react-icons/fa";
+import { FaBrain } from "react-icons/fa";
 import {
   IoCloseSharp,
-  IoDocumentTextSharp,
-  IoLinkSharp,
+  IoCreateSharp,
   IoSettingsSharp,
 } from "react-icons/io5";
 import { BiSolidDashboard } from "react-icons/bi";
@@ -31,10 +29,7 @@ export default function Sidebar({
   const router = useRouter();
   const menuItems = [
     { label: "All Notes", icon: <BiSolidDashboard size={18} /> },
-    { label: "Tweets", icon: <FaTwitter size={18} /> },
-    { label: "Videos", icon: <BsYoutube size={18} /> },
-    { label: "Documents", icon: <IoDocumentTextSharp size={18} /> },
-    { label: "Links", icon: <IoLinkSharp size={18} /> },
+    { label: "Create Notes", icon: <IoCreateSharp size={18} /> },
     { label: "Ai Agent", icon: <FaBrain size={18} /> },
     { label: "Settings", icon: <IoSettingsSharp size={18} /> },
   ];
