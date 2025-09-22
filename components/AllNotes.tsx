@@ -9,25 +9,7 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import Image from "next/image";
-
-type Attachment = {
-  id: string;
-  url: string;
-  filename: string;
-  mimeType: string;
-  size: number;
-};
-
-type Note = {
-  id: string;
-  title: string;
-  content: string | null;
-  type: string;
-  createdAt: string;
-  updatedAt: string;
-  attachments?: Attachment[];
-  url?: string | null; // 👈 match your DB
-};
+import NoteViewer, { Note } from "@/components/NoteViewer";
 
 function getEmbedUrl(url: string) {
   try {
@@ -49,6 +31,7 @@ export default function AllNotes() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
 
   // Fetch notes
   async function fetchNotes() {
@@ -58,7 +41,6 @@ export default function AllNotes() {
       const res = await fetch("/api/content");
       if (!res.ok) throw new Error("Failed to load notes");
       const data = await res.json();
-      // console.log("📦 API response:", data); // 🔍 full API response
       setNotes(Array.isArray(data.data) ? data.data : []);
     } catch (err) {
       console.error("❌ Fetch error:", err);
@@ -114,18 +96,20 @@ export default function AllNotes() {
       <h1 className="text-2xl font-bold mb-6">All Notes</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {notes.map((note) => {
-          // console.log("📝 Note:", note);
           return (
             <div
               key={note.id}
-              className="p-6 bg-card text-card-foreground rounded-xl shadow border border-border flex flex-col justify-between"
+              className="p-6 bg-card text-card-foreground rounded-xl shadow border border-border flex flex-col justify-between cursor-pointer hover:shadow-lg transition"
+              onClick={() => setSelectedNote(note)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === "Enter" && setSelectedNote(note)}
             >
               <div>
                 <h2 className="text-lg font-semibold mb-2">{note.title}</h2>
 
-                {/* Render content depending on type */}
                 {note.type === "NOTE" && note.content && (
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">
+                  <p className="text-sm text-muted-foreground whitespace-pre-line line-clamp-4">
                     {note.content}
                   </p>
                 )}
@@ -137,53 +121,38 @@ export default function AllNotes() {
                       className="flex items-center gap-2 mt-2 text-blue-600"
                     >
                       <FileText size={16} />
-                      <a href={file.url} target="_blank" rel="noreferrer">
-                        {file.filename}
-                      </a>
+                      <span className="truncate">{file.filename}</span>
                     </div>
                   ))}
 
-                {note.type === "IMAGE" &&
-                  note.attachments?.map((img) => (
-                    <div key={img.id} className="mt-2">
-                      <Image
-                        src={img.url}
-                        alt={img.filename}
-                        className="w-full rounded-lg shadow"
-                      />
-                    </div>
-                  ))}
+                {note.type === "IMAGE" && note.attachments?.[0] && (
+                  <div className="mt-2">
+                    <Image
+                      src={note.attachments[0].url}
+                      alt={note.attachments[0].filename}
+                      width={400}
+                      height={300}
+                      className="w-full h-40 object-cover rounded-lg shadow"
+                    />
+                  </div>
+                )}
 
                 {note.type === "VIDEO" && note.url && (
                   <div className="mt-2">
                     <iframe
                       src={getEmbedUrl(note.url)}
-                      className="w-full h-48 rounded"
+                      className="w-full h-32 rounded"
                       allowFullScreen
                     />
-                    <a
-                      href={note.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-blue-600 underline text-sm block mt-1 break-all"
-                    >
-                      {note.url}
-                    </a>
                   </div>
                 )}
 
-                {/* Render LINK type */}
                 {note.type === "LINK" && note.url && (
                   <div className="flex items-center gap-2 mt-2">
                     <LinkIcon size={16} />
-                    <a
-                      href={note.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-blue-600 underline break-all"
-                    >
+                    <span className="truncate text-blue-600 underline">
                       {note.url}
-                    </a>
+                    </span>
                   </div>
                 )}
               </div>
@@ -195,7 +164,10 @@ export default function AllNotes() {
                 <Button
                   size="icon"
                   variant="destructive"
-                  onClick={() => deleteNote(note.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteNote(note.id);
+                  }}
                   disabled={deleting === note.id}
                 >
                   {deleting === note.id ? (
@@ -209,6 +181,16 @@ export default function AllNotes() {
           );
         })}
       </div>
+
+      {/* Fullscreen note viewer */}
+      <NoteViewer
+        note={selectedNote}
+        open={!!selectedNote}
+        onClose={() => setSelectedNote(null)}
+        onDelete={async (id) => {
+          await deleteNote(id);
+        }}
+      />
     </div>
   );
 }
