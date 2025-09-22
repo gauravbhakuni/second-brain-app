@@ -105,7 +105,7 @@ export default function Navbar({ onMenuClick }: { onMenuClick: () => void }) {
             </Button>
           </DialogTrigger>
 
-          <DialogContent>
+          <DialogContent className="max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Content</DialogTitle>
             </DialogHeader>
